@@ -65,3 +65,59 @@ Then run:
 DB_ENV=prod uv run fastapi run &
 DB_ENV=prod uv run dispatcher &
 ```
+
+## Scaling-law solution (`cs336_scaling/scaling_laws`)
+
+The assignment's two problems are implemented in the `cs336_scaling.scaling_laws` package;
+the write-up lives in [`writeup/writeup.md`](./writeup/writeup.md).
+
+> **Note on dependencies.** `pyproject.toml` pins PyPI as the default package index (so
+> `uv sync` works on machines whose global `uv` config points at a mirror that lacks some
+> packages) and adds `matplotlib`/`scipy` to the `dev` group, which `uv sync` installs by
+> default. JAX runs on CPU on macOS, which is enough for the tests and the simulator.
+
+### Problem `chinchilla_isoflops`
+
+```sh
+uv run scripts/chinchilla_isoflops.py            # or: uv run python -m cs336_scaling.scaling_laws isoflops
+```
+
+Fits `N_opt(C)` and `D_opt(C)` power laws to the per-budget minima of
+`data/isoflops_curves.json` and writes plots + `summary.json` to `results/isoflops/`.
+
+### Problem `scaling_laws`
+
+The study is a staged pipeline with a persistent state file
+(`results/scaling_laws/<backend>/state.json`):
+
+| command | what it does |
+|---|---|
+| `plan --stage probe` | short run per model shape to measure tokens/sec |
+| `plan --stage lr_sweep` | peak-LR sweeps at two small scales -> `lr_opt(N)` rule |
+| `plan --stage iso_time` | next iso-time tier: several shapes trained for the same wall-clock budget |
+| `plan --stage bracket` | extend tiers whose minimum sits on the edge of the sampled shapes |
+| `run` | submit planned runs, poll until finished, persist results (resumable) |
+| `fit` | throughput model, LR rule, iso-time laws, parametric `L(N, D)`, hold-out check, bootstrap; writes `fit/report.md`, plots and `fit/final_submission.json` |
+| `submit-final` | POST `final_submission.json` to the API |
+| `all` | the whole study: probe -> lr_sweep -> iso-time tiers with bracketing -> fit |
+| `evaluate` | (simulator only) score the final submission against the hidden truth |
+
+Against the hosted API (students; needs `A3_API_KEY` and the Stanford network):
+
+```sh
+uv run python -m cs336_scaling.scaling_laws all --backend api          # or stage by stage with plan/run
+uv run python -m cs336_scaling.scaling_laws fit --backend api
+uv run python -m cs336_scaling.scaling_laws submit-final --backend api
+```
+
+Offline, against the built-in simulator (no GPUs; validates the whole pipeline end to end):
+
+```sh
+uv run python -m cs336_scaling.scaling_laws all --backend simulated --fast
+```
+
+Tests for the solution do not need Postgres:
+
+```sh
+uv run pytest tests/test_isoflops.py tests/test_scaling_laws.py
+```

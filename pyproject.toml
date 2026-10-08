@@ -8,6 +8,7 @@ dependencies = [
     "pydantic>=2.8",
     "requests>=2.32",
     "rich>=14.0",
+    "scipy-stubs~=1.17.1",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +44,10 @@ module-root = ""
 package = true
 python-preference = "managed"
 
+[[tool.uv.index]]
+url = "https://pypi.org/simple"
+default = true
+
 [project.scripts]
 dispatcher = "cs336_scaling.scheduler.dispatch_loop:main"
 
@@ -64,8 +69,10 @@ dev = [
     "httpx>=0.28",
     "ipykernel>=7.2.0",
     "ipython>=9.13.0",
+    "matplotlib>=3.9",
     "pytest>=8.4",
     "ruff>=0.15.11",
+    "scipy>=1.14",
     "ty>=0.0.32",
 ]
 

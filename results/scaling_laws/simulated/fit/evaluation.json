@@ -1,0 +1,19 @@
+{
+  "chosen_k": 31,
+  "chosen_shape": "31L x 1984d (ff 5376, 31 heads) N_ne=1480.2M total=1607.1M",
+  "predicted_loss": 2.5695121160499643,
+  "actual_loss": 2.4874770174890193,
+  "completed": true,
+  "actual_seconds": 156590.65748253083,
+  "budget_seconds": 172800.0,
+  "oracle_best": {
+    "k": 29,
+    "N": 1205770816,
+    "tokens": 20672427431,
+    "loss": 2.4660719325678224,
+    "seconds": 169343.99999881626
+  },
+  "regret": 0.02140508492119686,
+  "prediction_error": -0.08203509856094504,
+  "loss_is_finite": true
+}
